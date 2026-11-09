@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Penilaian Kinerja Perangkat Desa</title>
+  <link rel="shortcut icon" type="image/png" href="favicon.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .tab-active { background-color: #059669; color: white; }
+    .tab-inactive { background-color: #f1f5f9; color: #475569; }
+    .tab-inactive:hover { background-color: #e2e8f0; }
+
+    @media print {
+      body * { visibility: hidden; }
+      #printArea, #printArea * { visibility: visible; }
+      #printArea {
+        position: absolute; left: 0; top: 0; width: 100%;
+        margin: 0; padding: 20px; box-shadow: none; border: none;
+      }
+    }
+    .hidden-screen { display: none !important; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
+
+  <!-- ============================================= -->
+  <!-- HALAMAN LOGIN                                  -->
+  <!-- ============================================= -->
+  <div id="loginPage" class="min-h-screen flex items-center justify-center p-4 bg-slate-100">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-slate-200 space-y-6">
+      <div class="text-center space-y-2">
+        <div class="w-16 h-16 mx-auto bg-emerald-100 rounded-2xl flex items-center justify-center mb-2">
+          <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-slate-900">Sistem Penilaian Desa</h1>
+        <p class="text-xs text-slate-500">Silakan masuk sesuai akun penilai atau admin</p>
+      </div>
+
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Username</label>
+          <input type="text" id="username" required placeholder="Masukkan username"
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Password</label>
+          <input type="password" id="password" required placeholder="Masukkan password"
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+        </div>
+        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-emerald-600/20">
+          Masuk ke Sistem
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================= -->
+  <!-- HALAMAN DASHBOARD                              -->
+  <!-- ============================================= -->
+  <div id="dashboardPage" class="hidden-screen min-h-screen p-4 md:p-8">
+    <div class="max-w-6xl mx-auto space-y-6">
+
+      <!-- Top Bar -->
+      <div class="bg-white rounded-2xl shadow-xl p-5 border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 bg-emerald-600 rounded-xl flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-lg md:text-xl font-bold text-slate-900">Penilaian Kinerja Perangkat Desa</h1>
+            <p class="text-xs text-slate-500">Instrumen evaluasi perilaku terstruktur & objektif</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+          <div class="text-right">
+            <p id="userNameDisplay" class="text-sm font-semibold text-slate-800">-</p>
+            <p id="userRoleDisplay" class="text-xs text-slate-500">-</p>
+          </div>
+          <button onclick="logout()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold rounded-xl text-xs transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="bg-white rounded-2xl shadow-xl p-2 border border-slate-100 flex gap-2">
+        <button id="tabBtnPenilaian" onclick="switchTab('penilaian')"
+          class="flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition tab-active flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+          </svg>
+          Penilaian Kinerja
+        </button>
+        <button id="tabBtnRekap" onclick="switchTab('rekap')"
+          class="flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition tab-inactive flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Rekap Hasil Penilaian
+        </button>
+      </div>
+
+      <!-- ============================================= -->
+      <!-- KONTEN TAB 1: PENILAIAN KINERJA                -->
+      <!-- ============================================= -->
+      <div id="tabPenilaian">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+          <form id="penilaianForm" class="p-6 md:p-8 space-y-8">
+            <!-- Data Perangkat Desa -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-5 rounded-xl border border-slate-200">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">Nama Perangkat Desa</label>
+                <input type="text" id="namaPerangkat" required placeholder="Contoh: Ahmad Fauzi"
+                  class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">Jabatan</label>
+                <select id="jabatan" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                  <option value="">-- Pilih Jabatan --</option>
+                  <option value="Sekretaris Desa">Sekretaris Desa</option>
+                  <option value="Kaur Keuangan">Kaur Keuangan</option>
+                  <option value="Kaur Perencanaan">Kaur Perencanaan</option>
+                  <option value="Kasi Pemerintahan">Kasi Pemerintahan</option>
+                  <option value="Kasi Kesejahteraan">Kasi Kesejahteraan</option>
+                  <option value="Kasi Pelayanan">Kasi Pelayanan</option>
+                  <option value="Kepala Dusun">Kepala Dusun</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">Periode Penilaian</label>
+                <input type="text" id="periode" required value="Triwulan I - 2026"
+                  class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+              </div>
+            </div>
+
+            <!-- Container Instrumen Penilaian -->
+            <div id="instrumenContainer" class="space-y-6"></div>
+
+            <!-- Live Calculation & Summary -->
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+              <div>
+                <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Hasil Akhir Instrumen</span>
+                <div class="flex items-baseline gap-3 mt-1">
+                  <span id="displayTotalSkor" class="text-4xl font-extrabold text-emerald-700">0.00</span>
+                  <span id="displayPredikat" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-600">Belum Lengkap</span>
+                </div>
+              </div>
+              <button type="submit" class="w-full md:w-auto px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-600/30 transition">
+                Simpan Hasil Penilaian
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ============================================= -->
+      <!-- KONTEN TAB 2: REKAP HASIL PENILAIAN            -->
+      <!-- ============================================= -->
+      <div id="tabRekap" class="hidden-screen space-y-6">
+
+        <!-- Tombol Muat Ulang -->
+        <div class="bg-white rounded-2xl shadow-xl p-4 border border-slate-100 flex justify-between items-center">
+          <div>
+            <h2 class="font-bold text-slate-800 text-sm">Rekapitulasi Kinerja Perangkat Desa</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Daftar riwayat hasil penilaian objektif yang tersimpan di database</p>
+          </div>
+          <button onclick="loadDataRekap()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition shadow-md shadow-emerald-600/20 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Muat Ulang
+          </button>
+        </div>
+
+        <!-- Grafik Statistik -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white rounded-2xl shadow-xl p-6 border border-slate-100 flex flex-col items-center">
+            <h3 class="font-bold text-slate-800 text-sm mb-4 w-full text-left">Sebaran Predikat Kinerja</h3>
+            <div class="w-full max-w-[280px] h-[280px]">
+              <canvas id="predikatChart"></canvas>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl shadow-xl p-6 border border-slate-100 flex flex-col items-center">
+            <h3 class="font-bold text-slate-800 text-sm mb-4 w-full text-left">Rata-Rata Skor Berdasarkan Jabatan</h3>
+            <div class="w-full h-[280px]">
+              <canvas id="jabatanChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search -->
+        <div class="bg-white rounded-xl shadow-sm p-4 border border-slate-200 flex flex-col md:flex-row gap-4">
+          <input type="text" id="searchNama" placeholder="Cari nama perangkat desa..." onkeyup="filterData()"
+            class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+          <select id="filterPredikat" onchange="filterData()"
+            class="px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+            <option value="">Semua Predikat</option>
+            <option value="Sangat Baik">Sangat Baik (A)</option>
+            <option value="Baik">Baik (B)</option>
+            <option value="Cukup">Cukup (C)</option>
+            <option value="Kurang">Kurang (D)</option>
+          </select>
+        </div>
+
+        <!-- Tabel Data -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wider font-semibold">
+                  <th class="p-4">Waktu Penilaian</th>
+                  <th class="p-4">Nama Perangkat</th>
+                  <th class="p-4">Jabatan</th>
+                  <th class="p-4">Periode</th>
+                  <th class="p-4 text-center">Total Skor</th>
+                  <th class="p-4 text-center">Predikat</th>
+                  <th class="p-4 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tabelRekapBody" class="divide-y divide-slate-100 text-sm">
+                <tr>
+                  <td colspan="7" class="p-8 text-center text-slate-400">Buka tab ini untuk memuat data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- End Tab Rekap -->
+
+    </div>
+  </div>
+  <!-- End Dashboard -->
+
+  <!-- ============================================= -->
+  <!-- MODAL CETAK (di luar dashboard)                -->
+  <!-- ============================================= -->
+  <div id="modalCetak" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="bg-slate-100 p-4 border-b border-slate-200 flex justify-between items-center">
+        <h3 class="font-bold text-slate-800">Pratinjau Lembar Hasil Penilaian Kinerja</h3>
+        <div class="flex gap-2">
+          <button onclick="triggerPrint()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition">Cetak / Simpan PDF</button>
+          <button onclick="tutupModalCetak()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition">Tutup</button>
+        </div>
+      </div>
+      <div id="printArea" class="p-8 bg-white overflow-y-auto space-y-6 text-slate-800 text-sm">
+        <div class="text-center border-b-2 border-slate-800 pb-4 space-y-1">
+          <h4 class="font-bold text-base uppercase">Pemerintah Kabupaten Brebes</h4>
+          <h4 class="font-bold text-base uppercase">Kecamatan Sirampog — Desa ...</h4>
+          <p class="text-xs text-slate-600">Alamat: Jl. Raya Desa No. 1, Kecamatan Sirampog, Kabupaten Brebes</p>
+        </div>
+        <div class="text-center space-y-1">
+          <h2 class="font-bold text-lg underline uppercase">Lembar Hasil Evaluasi Kinerja Perangkat Desa</h2>
+          <p id="printPeriode" class="text-xs text-slate-600">Periode: -</p>
+        </div>
+        <table class="w-full text-xs space-y-2 border-collapse">
+          <tr>
+            <td class="py-1 font-semibold w-1/4">Nama Perangkat</td>
+            <td class="py-1">: <span id="printNama">-</span></td>
+          </tr>
+          <tr>
+            <td class="py-1 font-semibold">Jabatan</td>
+            <td class="py-1">: <span id="printJabatan">-</span></td>
+          </tr>
+        </table>
+        <div class="grid grid-cols-2 gap-4 border border-slate-300 p-4 rounded-lg bg-slate-50">
+          <div>
+            <span class="text-xs text-slate-500 block">Total Skor Akhir</span>
+            <span id="printTotalSkor" class="text-2xl font-extrabold text-emerald-700">0.00</span>
+          </div>
+          <div>
+            <span class="text-xs text-slate-500 block">Predikat Kinerja</span>
+            <span id="printPredikat" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-600 inline-block mt-1">-</span>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <h5 class="font-bold text-xs uppercase text-slate-700">Catatan & Analisis Evaluasi:</h5>
+          <p id="printNarasi" class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-lg border border-slate-200">-</p>
+        </div>
+        <div class="pt-12 flex justify-between text-xs">
+          <div class="text-center space-y-16">
+            <p>Mengetahui,<br>Kepala Desa / Atasan Penilai</p>
+            <p class="font-bold underline">( _______________________ )</p>
+          </div>
+          <div class="text-center space-y-16">
+            <p>Sirampog, <span id="printTanggalHariIni"></span><br>Tim Penilai Kinerja</p>
+            <p class="font-bold underline">( _______________________ )</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================= -->
+  <!-- SCRIPT GABUNGAN                                -->
+  <!-- ============================================= -->
+  <script>
+    // ==========================================
+    // KONFIGURASI
+    // ==========================================
+    //const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby82az7VCH-aE_W0xc_DGLNw5duhMnxmGHUN0HSpq8TCzYkKn4wDRE_BcKHnJ-O1cV26g/exec"; Mendala Baru
+	const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw3Mx5aEZXYUk_tyHmgaGzfkTfxviuXlxXHYieXX7YsbbPU8JXib0Jx_BSNjkAe_LV7PQ/exec"; //abunawas wanareja
+
+    // ==========================================
+    // SKEMA INSTRUMEN PENILAIAN
+    // ==========================================
+    const instrumenData = [
+      {
+        kategori: "I. Disiplin & Etika Kerja (Bobot 20%)",
+        bobotKategori: 20,
+        aspek: [
+          {
+            id: "Q1",
+            pertanyaan: "1. Kehadiran harian & ketepatan waktu jam kerja kantor desa",
+            opsi: [
+              { teks: "Selalu tepat waktu, hadir 100% hari kerja", skor: 100 },
+              { teks: "Kadang terlambat (< 3 kali dalam sebulan)", skor: 75 },
+              { teks: "Sering terlambat atau tanpa keterangan (3-5 kali)", skor: 50 },
+              { teks: "Sering absen / mangkir kerja", skor: 25 }
+            ]
+          },
+          {
+            id: "Q2",
+            pertanyaan: "2. Kepatuhan pada tata tertib, atribut dinas, & rapat desa",
+            opsi: [
+              { teks: "Sangat patuh, berseragam lengkap & aktif di rapat", skor: 100 },
+              { teks: "Patuh namun kadang kurang aktif di rapat", skor: 75 },
+              { teks: "Kurang mematuhi atribut/tata tertib", skor: 50 },
+              { teks: "Mengabaikan tata tertib instansi", skor: 25 }
+            ]
+          }
+        ]
+      },
+      {
+        kategori: "II. Pelaksanaan Tugas Utama / Tupoksi (Bobot 35%)",
+        bobotKategori: 35,
+        aspek: [
+          {
+            id: "Q3",
+            pertanyaan: "1. Ketepatan waktu dan akurasi laporan kerja (LPPD, SPJ, dll)",
+            opsi: [
+              { teks: "Selalu tepat waktu, rapi, dan akurat tanpa revisi", skor: 100 },
+              { teks: "Tepat waktu namun perlu sedikit perbaikan", skor: 75 },
+              { teks: "Terlambat dan butuh pengingat berulang", skor: 50 },
+              { teks: "Sangat terlambat / tugas terbengkalai", skor: 25 }
+            ]
+          },
+          {
+            id: "Q4",
+            pertanyaan: "2. Pencapaian target fisik & administrasi kegiatan APBDes",
+            opsi: [
+              { teks: "Target tercapai atau terlampaui dengan sangat baik", skor: 100 },
+              { teks: "Target tercapai sesuai rencana standar", skor: 75 },
+              { teks: "Target tercapai sebagian kecil saja", skor: 50 },
+              { teks: "Target tidak tercapai", skor: 25 }
+            ]
+          }
+        ]
+      },
+      {
+        kategori: "III. Kualitas Pelayanan Masyarakat (Bobot 25%)",
+        bobotKategori: 25,
+        aspek: [
+          {
+            id: "Q5",
+            pertanyaan: "1. Kecepatan, keramahan, dan solusi dalam melayani warga",
+            opsi: [
+              { teks: "Sangat responsif, ramah, dan solutif bagi warga", skor: 100 },
+              { teks: "Cukup responsif dan bersikap sopan", skor: 75 },
+              { teks: "Kurang ramah atau lambat melayani", skor: 50 },
+              { teks: "Sering dikomplain oleh warga desa", skor: 25 }
+            ]
+          }
+        ]
+      },
+      {
+        kategori: "IV. Kerjasama & Inovasi (Bobot 20%)",
+        bobotKategori: 20,
+        aspek: [
+          {
+            id: "Q6",
+            pertanyaan: "1. Pemanfaatan digital / aplikasi administrasi pemerintahan",
+            opsi: [
+              { teks: "Sangat proaktif dan mahir menggunakan sistem digital desa", skor: 100 },
+              { teks: "Mampu menggunakan setelah diberi arahan", skor: 75 },
+              { teks: "Kurang berminat mempelajari sistem digital", skor: 50 },
+              { teks: "Menolak menggunakan perangkat/sistem digital", skor: 25 }
+            ]
+          }
+        ]
+      }
+    ];
+
+    // ==========================================
+    // STATE GLOBAL
+    // ==========================================
+    let globalData = [];
+    let predikatChartInstance = null;
+    let jabatanChartInstance = null;
+    let currentUser = null;
+
+    // ==========================================
+    // AUTENTIKASI
+    // ==========================================
+    function checkSession() {
+      const session = localStorage.getItem('user_session');
+      if (session) {
+        try {
+          currentUser = JSON.parse(session);
+          showDashboard();
+        } catch (e) {
+          localStorage.removeItem('user_session');
+          showLogin();
+        }
+      } else {
+        showLogin();
+      }
+    }
+
+    function showLogin() {
+      document.getElementById('loginPage').classList.remove('hidden-screen');
+      document.getElementById('dashboardPage').classList.add('hidden-screen');
+    }
+
+    function showDashboard() {
+      document.getElementById('loginPage').classList.add('hidden-screen');
+      document.getElementById('dashboardPage').classList.remove('hidden-screen');
+
+      // Tampilkan info user
+      if (currentUser) {
+        document.getElementById('userNameDisplay').textContent = currentUser.nama || 'User';
+        document.getElementById('userRoleDisplay').textContent = currentUser.role || 'Penilai';
+      }
+
+      // Default tab: Penilaian
+      switchTab('penilaian');
+    }
+
+    function logout() {
+      Swal.fire({
+        title: 'Keluar dari sistem?',
+        text: 'Anda akan diarahkan kembali ke halaman login',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#e11d48',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Logout',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          localStorage.removeItem('user_session');
+          currentUser = null;
+          showLogin();
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil Logout',
+            timer: 1200,
+            showConfirmButton: false
+          });
+        }
+      });
+    }
+
+    // ==========================================
+    // LOGIN FORM HANDLER
+    // ==========================================
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      Swal.fire({
+        title: 'Memeriksa Akun...',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      // Menggunakan Google Apps Script (doPost)
+      // Catatan: fetch ke GAS via no-cors tidak bisa baca response JSON.
+      // Solusi: gunakan JSONP via parameter GET atau metode fetch POST dengan redirect.
+      // Di sini kita pakai metode GET dengan parameter action=login agar response bisa dibaca.
+      const url = `${WEB_APP_URL}?action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'success') {
+            currentUser = res.user;
+            localStorage.setItem('user_session', JSON.stringify(res.user));
+
+            Swal.fire({
+              icon: 'success',
+              title: 'Login Berhasil!',
+              text: `Selamat datang, ${res.user.nama} (${res.user.role})`,
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              showDashboard();
+              document.getElementById('loginForm').reset();
+            });
+          } else {
+            Swal.fire('Gagal Login', res.message, 'error');
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          Swal.fire('Error', 'Terjadi kesalahan koneksi ke server.', 'error');
+        });
+    });
+
+    // ==========================================
+    // TAB SWITCHING
+    // ==========================================
+    function switchTab(tab) {
+      const tabPenilaian = document.getElementById('tabPenilaian');
+      const tabRekap = document.getElementById('tabRekap');
+      const btnPenilaian = document.getElementById('tabBtnPenilaian');
+      const btnRekap = document.getElementById('tabBtnRekap');
+
+      if (tab === 'penilaian') {
+        tabPenilaian.classList.remove('hidden-screen');
+        tabRekap.classList.add('hidden-screen');
+        btnPenilaian.classList.add('tab-active');
+        btnPenilaian.classList.remove('tab-inactive');
+        btnRekap.classList.add('tab-inactive');
+        btnRekap.classList.remove('tab-active');
+      } else {
+        tabPenilaian.classList.add('hidden-screen');
+        tabRekap.classList.remove('hidden-screen');
+        btnRekap.classList.add('tab-active');
+        btnRekap.classList.remove('tab-inactive');
+        btnPenilaian.classList.add('tab-inactive');
+        btnPenilaian.classList.remove('tab-active');
+
+        // Load data setiap kali tab rekap dibuka
+        loadDataRekap();
+      }
+    }
+
+    // ==========================================
+    // RENDER INSTRUMEN PENILAIAN
+    // ==========================================
+    function renderInstrumen() {
+      const container = document.getElementById('instrumenContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      instrumenData.forEach((kategoriObj) => {
+        const section = document.createElement('div');
+        section.className = 'border border-slate-200 rounded-xl p-5 bg-white shadow-sm space-y-5';
+
+        let aspekHTML = '';
+        kategoriObj.aspek.forEach((item) => {
+          let opsiHTML = '';
+          item.opsi.forEach((opsi) => {
+            opsiHTML += `
+              <label class="flex items-start gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                <input type="radio" name="${item.id}" value="${opsi.skor}" required class="mt-1 text-emerald-600 focus:ring-emerald-500 instrumen-radio">
+                <span class="text-xs md:text-sm text-slate-700">${opsi.teks}</span>
+              </label>
+            `;
+          });
+
+          aspekHTML += `
+            <div class="space-y-2">
+              <p class="font-semibold text-xs md:text-sm text-slate-800">${item.pertanyaan}</p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">${opsiHTML}</div>
+            </div>
+          `;
+        });
+
+        section.innerHTML = `
+          <div class="border-b border-slate-100 pb-2">
+            <h3 class="font-bold text-slate-800 text-base">${kategoriObj.kategori}</h3>
+          </div>
+          <div class="space-y-4">${aspekHTML}</div>
+        `;
+        container.appendChild(section);
+      });
+
+      document.querySelectorAll('.instrumen-radio').forEach(radio => {
+        radio.addEventListener('change', kalkulasiTotalSkor);
+      });
+    }
+
+    // ==========================================
+    // KALKULASI SKOR
+    // ==========================================
+    function kalkulasiTotalSkor() {
+      let totalAkhir = 0;
+
+      instrumenData.forEach(kat => {
+        let totalSkorKat = 0;
+        let jumlahPertanyaan = kat.aspek.length;
+
+        kat.aspek.forEach(item => {
+          const selected = document.querySelector(`input[name="${item.id}"]:checked`);
+          const skorOpsi = selected ? parseFloat(selected.value) : 0;
+          totalSkorKat += skorOpsi;
+        });
+
+        const rataRataKat = totalSkorKat / jumlahPertanyaan;
+        const kontribusi = (rataRataKat * kat.bobotKategori) / 100;
+        totalAkhir += kontribusi;
+      });
+
+      const displaySkor = document.getElementById('displayTotalSkor');
+      const displayPredikat = document.getElementById('displayPredikat');
+
+      displaySkor.textContent = totalAkhir.toFixed(2);
+
+      let predikat = { teks: 'Belum Lengkap', class: 'bg-slate-200 text-slate-600' };
+
+      if (totalAkhir >= 86) {
+        predikat = { teks: 'Sangat Baik (A)', class: 'bg-emerald-100 text-emerald-800 border border-emerald-300' };
+      } else if (totalAkhir >= 71) {
+        predikat = { teks: 'Baik (B)', class: 'bg-blue-100 text-blue-800 border border-blue-300' };
+      } else if (totalAkhir >= 56) {
+        predikat = { teks: 'Cukup (C)', class: 'bg-amber-100 text-amber-800 border border-amber-300' };
+      } else if (totalAkhir > 0) {
+        predikat = { teks: 'Kurang (D)', class: 'bg-rose-100 text-rose-800 border border-rose-300' };
+      }
+
+      displayPredikat.textContent = predikat.teks;
+      displayPredikat.className = `px-3 py-1 rounded-full text-xs font-bold ${predikat.class}`;
+    }
+
+    // ==========================================
+    // SUBMIT PENILAIAN
+    // ==========================================
+    document.getElementById('penilaianForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      let jawabanLengkap = true;
+      const hasilDetail = [];
+
+      instrumenData.forEach(kat => {
+        kat.aspek.forEach(item => {
+          const selected = document.querySelector(`input[name="${item.id}"]:checked`);
+          if (!selected) jawabanLengkap = false;
+          else {
+            hasilDetail.push({
+              id_pertanyaan: item.id,
+              pertanyaan: item.pertanyaan,
+              skor_terpilih: parseFloat(selected.value)
+            });
+          }
+        });
+      });
+
+      if (!jawabanLengkap) {
+        Swal.fire('Perhatian', 'Mohon lengkapi semua opsi pertanyaan instrumen penilaian terlebih dahulu.', 'warning');
+        return;
+      }
+
+      const payload = {
+        nama: document.getElementById('namaPerangkat').value,
+        jabatan: document.getElementById('jabatan').value,
+        periode: document.getElementById('periode').value,
+        total_skor: parseFloat(document.getElementById('displayTotalSkor').textContent),
+        detail: hasilDetail
+      };
+
+      Swal.fire({
+        title: 'Menyimpan ke Google Sheets...',
+        text: 'Mohon tunggu sebentar',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      // Kirim via POST no-cors. Response tidak bisa dibaca, tapi data tetap masuk.
+      fetch(WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        Swal.fire({
+          title: 'Berhasil Disimpan!',
+          text: `Penilaian untuk ${payload.nama} (${payload.jabatan}) berhasil masuk ke Google Sheets.`,
+          icon: 'success',
+          confirmButtonColor: '#059669'
+        });
+        document.getElementById('penilaianForm').reset();
+        document.getElementById('displayTotalSkor').textContent = "0.00";
+        document.getElementById('displayPredikat').textContent = "Belum Lengkap";
+        document.getElementById('displayPredikat').className = "px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-600";
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Gagal', 'Terjadi kesalahan saat menghubungkan ke server.', 'error');
+      });
+    });
+
+    // ==========================================
+    // LOAD DATA REKAP
+    // ==========================================
+    function loadDataRekap() {
+      const tbody = document.getElementById('tabelRekapBody');
+      tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">Mengambil data terbaru...</td></tr>`;
+
+      // Menggunakan fetch GET; GAS doGet mengembalikan HTML, bukan JSON.
+      // Solusi: gunakan JSONP dengan callback, atau fetch ke endpoint getRekapData via doGet.
+      // Agar sederhana, kita gunakan fetch biasa dengan asumsi doGet sudah dimodifikasi
+      // (lihat catatan Code.gs di bawah).
+      fetch(`${WEB_APP_URL}?action=getRekap`)
+        .then(response => response.json())
+        .then(result => {
+          if (result.status === 'success') {
+            globalData = result.data;
+            renderTabel(globalData);
+            renderGrafikStatistik(globalData);
+          } else {
+            tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-rose-500">Gagal memuat data: ${result.message}</td></tr>`;
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-rose-500">Terjadi kesalahan koneksi ke server.</td></tr>`;
+        });
+    }
+
+    // ==========================================
+    // RENDER TABEL
+    // ==========================================
+    function renderTabel(data) {
+      const tbody = document.getElementById('tabelRekapBody');
+      tbody.innerHTML = '';
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada data penilaian tersimpan.</td></tr>`;
+        return;
+      }
+
+      data.forEach(item => {
+        let badgeClass = "bg-slate-100 text-slate-700";
+        if (item.predikat.includes("Sangat Baik")) badgeClass = "bg-emerald-100 text-emerald-800 border border-emerald-200";
+        else if (item.predikat.includes("Baik")) badgeClass = "bg-blue-100 text-blue-800 border border-blue-200";
+        else if (item.predikat.includes("Cukup")) badgeClass = "bg-amber-100 text-amber-800 border border-amber-200";
+        else if (item.predikat.includes("Kurang")) badgeClass = "bg-rose-100 text-rose-800 border border-rose-200";
+
+        const formattedDate = new Date(item.timestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition";
+        tr.innerHTML = `
+          <td class="p-4 text-xs text-slate-500">${formattedDate}</td>
+          <td class="p-4 font-semibold text-slate-800">${item.nama}</td>
+          <td class="p-4 text-slate-600">${item.jabatan}</td>
+          <td class="p-4 text-slate-600">${item.periode}</td>
+          <td class="p-4 text-center font-bold text-emerald-700">${parseFloat(item.total_skor).toFixed(2)}</td>
+          <td class="p-4 text-center"><span class="px-3 py-1 rounded-full text-xs font-bold ${badgeClass}">${item.predikat}</span></td>
+          <td class="p-4 text-center space-x-1">
+            <button onclick="lihatNarasi('${item.nama}', '${item.jabatan}', \`${(item.narasi || 'Belum ada narasi').replace(/`/g, '')}\`)" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold rounded-lg text-xs transition">
+              AI
+            </button>
+            <button onclick="bukaLembarCetak('${item.nama}', '${item.jabatan}', '${item.periode}', '${item.total_skor}', '${item.predikat}', \`${(item.narasi || '').replace(/`/g, '')}\`)" class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold rounded-lg text-xs transition">
+              Cetak
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ==========================================
+    // FILTER DATA
+    // ==========================================
+    function filterData() {
+      const keyword = document.getElementById('searchNama').value.toLowerCase();
+      const predikatFilter = document.getElementById('filterPredikat').value;
+
+      const filtered = globalData.filter(item => {
+        const matchNama = item.nama.toLowerCase().includes(keyword) || item.jabatan.toLowerCase().includes(keyword);
+        const matchPredikat = predikatFilter === "" || item.predikat.includes(predikatFilter);
+        return matchNama && matchPredikat;
+      });
+
+      renderTabel(filtered);
+    }
+
+    // ==========================================
+    // LIHAT NARASI AI
+    // ==========================================
+    function lihatNarasi(nama, jabatan, narasi) {
+	  // 1. Pastikan narasi tidak undefined/null
+	  let teksNarasi = narasi || 'Belum ada catatan evaluasi untuk perangkat desa ini.';
+	  
+	  // 2. Amankan karakter khusus agar tidak merusak HTML
+	  teksNarasi = teksNarasi
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/\n/g, '<br>'); // Ubah enter jadi baris baru
+
+	  Swal.fire({
+		title: `Evaluasi: ${nama} (${jabatan})`,
+		html: `<div class="text-left text-sm text-slate-600 space-y-3 leading-relaxed mt-3">${teksNarasi}</div>`,
+		icon: 'info',
+		confirmButtonText: 'Tutup',
+		confirmButtonColor: '#059669',
+		width: '600px'
+	  });
+	}
+
+    // ==========================================
+    // MODAL CETAK
+    // ==========================================
+    function bukaLembarCetak(nama, jabatan, periode, skor, predikat, narasi) {
+      document.getElementById('printNama').textContent = nama;
+      document.getElementById('printJabatan').textContent = jabatan;
+      document.getElementById('printPeriode').textContent = `Periode: ${periode}`;
+      document.getElementById('printTotalSkor').textContent = parseFloat(skor).toFixed(2);
+      document.getElementById('printPredikat').textContent = predikat;
+      document.getElementById('printNarasi').textContent = narasi || 'Belum ada catatan evaluasi.';
+
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('printTanggalHariIni').textContent = new Date().toLocaleDateString('id-ID', options);
+
+      document.getElementById('modalCetak').classList.remove('hidden');
+    }
+
+    function tutupModalCetak() {
+      document.getElementById('modalCetak').classList.add('hidden');
+    }
+
+    function triggerPrint() {
+      window.print();
+    }
+
+    // ==========================================
+    // GRAFIK STATISTIK
+    // ==========================================
+    function renderGrafikStatistik(data) {
+      const countPredikat = { "Sangat Baik": 0, "Baik": 0, "Cukup": 0, "Kurang": 0 };
+      const jabatanMap = {};
+
+      data.forEach(item => {
+        if (item.predikat.includes("Sangat Baik")) countPredikat["Sangat Baik"]++;
+        else if (item.predikat.includes("Baik")) countPredikat["Baik"]++;
+        else if (item.predikat.includes("Cukup")) countPredikat["Cukup"]++;
+        else if (item.predikat.includes("Kurang")) countPredikat["Kurang"]++;
+
+        const jab = item.jabatan || "Lainnya";
+        const skor = parseFloat(item.total_skor) || 0;
+
+        if (!jabatanMap[jab]) {
+          jabatanMap[jab] = { total: 0, count: 0 };
+        }
+        jabatanMap[jab].total += skor;
+        jabatanMap[jab].count += 1;
+      });
+
+      const labelJabatan = Object.keys(jabatanMap);
+      const rataRataJabatan = labelJabatan.map(jab => (jabatanMap[jab].total / jabatanMap[jab].count).toFixed(2));
+
+      const ctxPredikat = document.getElementById('predikatChart').getContext('2d');
+      if (predikatChartInstance) predikatChartInstance.destroy();
+
+      predikatChartInstance = new Chart(ctxPredikat, {
+        type: 'doughnut',
+        data: {
+          labels: ['Sangat Baik (A)', 'Baik (B)', 'Cukup (C)', 'Kurang (D)'],
+          datasets: [{
+            data: [countPredikat["Sangat Baik"], countPredikat["Baik"], countPredikat["Cukup"], countPredikat["Kurang"]],
+            backgroundColor: ['#059669', '#3b82f6', '#f59e0b', '#f43f5e'],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+          }
+        }
+      });
+
+      const ctxJabatan = document.getElementById('jabatanChart').getContext('2d');
+      if (jabatanChartInstance) jabatanChartInstance.destroy();
+
+      jabatanChartInstance = new Chart(ctxJabatan, {
+        type: 'bar',
+        data: {
+          labels: labelJabatan,
+          datasets: [{
+            label: 'Rata-Rata Skor',
+            data: rataRataJabatan,
+            backgroundColor: '#10b981',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, max: 100 }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // INISIALISASI
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', function() {
+      renderInstrumen();
+      checkSession();
+    });
+  </script>
+</body>
+</html>
